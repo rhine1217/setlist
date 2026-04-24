@@ -449,6 +449,23 @@
   <button class="btn-add" id="btn-add">Add</button>
 </div>
 
+<!-- Import modal -->
+<div class="backdrop" id="import-backdrop"></div>
+<div class="modal" id="import-modal" role="dialog" aria-modal="true" aria-label="Import data">
+  <div class="modal-handle"></div>
+  <div style="margin-bottom:16px">
+    <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:.06em;margin-bottom:6px">Import your data</div>
+    <div style="font-size:12px;color:var(--dim);line-height:1.6">Paste the contents of your <code style="color:var(--text)">setlist-data.json</code> file below, then tap Import.</div>
+  </div>
+  <div class="fg">
+    <textarea class="fi" id="import-text" rows="8"
+      placeholder='[{"id":"...","type":"show",...}]'
+      style="resize:vertical;font-size:12px;line-height:1.5"></textarea>
+  </div>
+  <button class="btn-add" id="btn-import">Import</button>
+  <button id="btn-import-skip" style="width:100%;background:none;border:none;color:var(--dim);font-family:'DM Mono';font-size:12px;padding:12px;cursor:pointer;margin-top:4px">Skip — start fresh</button>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -457,7 +474,7 @@
 const CLIENT_ID      = '142418659339-2qj69s19a0pqlc56i8jihb5hi9p486d6.apps.googleusercontent.com';
 const PLACES_API_KEY = 'AIzaSyBI8_mTRMkMXw3n1rlWJzSjUB6Ps8TefEA';
 const FILE_NAME      = 'setlist-data.json';
-const DRIVE_SCOPE    = 'https://www.googleapis.com/auth/drive';
+const DRIVE_SCOPE    = 'https://www.googleapis.com/auth/drive.file';
 
 /* ── STATE ───────────────────────────────────────── */
 let setlist      = [];
@@ -611,10 +628,37 @@ async function loadDrive() {
       setlist = [];
     }
     render();
+    if (setlist.length === 0) openImportModal();
   } catch (e) {
     if (e.message !== '401') toast('Failed to load data from Drive.');
   } finally {
     $('loading').style.display = 'none';
+  }
+}
+
+function openImportModal() {
+  $('import-backdrop').classList.add('on');
+  $('import-modal').classList.add('on');
+}
+
+function closeImportModal() {
+  $('import-backdrop').classList.remove('on');
+  $('import-modal').classList.remove('on');
+}
+
+function doImport() {
+  const raw = $('import-text').value.trim();
+  if (!raw) { toast('Paste your JSON first.'); return; }
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) throw new Error('Not an array');
+    setlist = data;
+    render();
+    scheduleSave();
+    closeImportModal();
+    toast(`Imported ${data.length} entries.`);
+  } catch (_) {
+    toast('Invalid JSON — check your file and try again.');
   }
 }
 
@@ -967,6 +1011,9 @@ function showApp() {
 }
 
 /* ── EVENT LISTENERS ─────────────────────────────── */
+$('btn-import').addEventListener('click', doImport);
+$('btn-import-skip').addEventListener('click', closeImportModal);
+$('import-backdrop').addEventListener('click', closeImportModal);
 $('btn-signin').addEventListener('click', signIn);
 $('btn-signout').addEventListener('click', signOut);
 $('fab').addEventListener('click', openModal);
