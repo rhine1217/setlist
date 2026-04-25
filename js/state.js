@@ -1,0 +1,18 @@
+export const state = {
+  setlist:      [],
+  fileId:       null,
+  token:        null,
+  tokenExpiry:  0,
+  currentTab:   'upcoming',
+  query:        '',
+  saveTimer:    null,
+  modalType:    'show',
+  modalStatus:  'planned',
+  storedCity:   '',
+  storedCountry: '',
+  PlacesLib:    null,
+  placesToken:  null,
+  mbTimer:      null,
+  venueTimer:   null,
+  tokenClient:  null,
+};
