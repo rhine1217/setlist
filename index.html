@@ -36,7 +36,7 @@
 <div id="app">
   <header class="hdr">
     <div class="hdr-logo">SETLIST</div>
-    <div class="hdr-right">
+    <div class="hdr-right" id="hdr-right">
       <div class="saving-dot" id="saving-dot"></div>
       <span class="hdr-count" id="hdr-count"></span>
       <button class="btn-out" id="btn-signout">sign out</button>
@@ -49,6 +49,12 @@
     <div class="tab"    data-tab="all">All</div>
   </div>
 
+  <div class="type-pills" id="type-pills">
+    <button class="type-pill on" data-type="all">All</button>
+    <button class="type-pill"    data-type="show">Shows</button>
+    <button class="type-pill"    data-type="festival">Festivals</button>
+  </div>
+
   <div class="search-wrap">
     <input id="search" class="search-input" type="search"
            placeholder="search artists, venues…" autocomplete="off" autocorrect="off">
@@ -57,6 +63,7 @@
   <div class="list" id="list"></div>
 
   <footer class="stats">
+    <div class="stat"><div class="stat-n" id="s-interested">0</div><div class="stat-l">Interested</div></div>
     <div class="stat"><div class="stat-n" id="s-planned">0</div><div class="stat-l">Planned</div></div>
     <div class="stat"><div class="stat-n" id="s-bought">0</div><div class="stat-l">Ticket</div></div>
     <div class="stat"><div class="stat-n" id="s-attended">0</div><div class="stat-l">Attended</div></div>
@@ -94,7 +101,8 @@
   <div id="fest-fields" style="display:none">
     <div class="fg">
       <label class="fl" for="fest-in">Festival name</label>
-      <input class="fi" id="fest-in" placeholder="e.g. Glastonbury 2025">
+      <input class="fi" id="fest-in" placeholder="e.g. Glastonbury 2025" autocomplete="off">
+      <div class="ac-list" id="fest-ac"></div>
     </div>
   </div>
 
@@ -133,9 +141,10 @@
   <div class="fg">
     <label class="fl">Status</label>
     <div class="status-btns">
-      <button class="s-btn on-planned" data-status="planned">Planned</button>
-      <button class="s-btn"           data-status="bought">Ticket ✓</button>
-      <button class="s-btn"           data-status="attended">Attended</button>
+      <button class="s-btn on-interested" data-status="interested">Interested</button>
+      <button class="s-btn"              data-status="planned">Planned</button>
+      <button class="s-btn"              data-status="bought">Ticket ✓</button>
+      <button class="s-btn"              data-status="attended">Attended</button>
     </div>
   </div>
 
@@ -157,6 +166,120 @@
   </div>
   <button class="btn-add" id="btn-import">Import</button>
   <button id="btn-import-skip" style="width:100%;background:none;border:none;color:var(--dim);font-family:'DM Mono';font-size:12px;padding:12px;cursor:pointer;margin-top:4px">Skip — start fresh</button>
+</div>
+
+<!-- Edit modal -->
+<div class="backdrop" id="edit-backdrop"></div>
+<div class="modal" id="edit-modal" role="dialog" aria-modal="true" aria-label="Edit entry">
+  <div class="modal-handle"></div>
+
+  <div class="edit-hdr">
+    <button class="btn-edit-del" id="btn-edit-del">Delete</button>
+    <span class="edit-attended-label" id="edit-attended-label">attended — limited edits</span>
+  </div>
+
+  <!-- Show fields (edit) -->
+  <div id="edit-show-fields">
+    <div class="fg">
+      <label class="fl" for="edit-artist-in">Artist</label>
+      <input class="fi" id="edit-artist-in" autocomplete="off" placeholder="Artist name">
+      <div class="ac-list" id="edit-artist-ac"></div>
+    </div>
+    <div class="fg">
+      <label class="fl" for="edit-tour-in">Tour / Event <span>(optional)</span></label>
+      <input class="fi" id="edit-tour-in">
+    </div>
+  </div>
+
+  <!-- Festival fields (edit) -->
+  <div id="edit-fest-fields" style="display:none">
+    <div class="fg">
+      <label class="fl" for="edit-fest-in">Festival name</label>
+      <input class="fi" id="edit-fest-in" autocomplete="off">
+      <div class="ac-list" id="edit-fest-ac"></div>
+    </div>
+  </div>
+
+  <!-- Shared: Venue -->
+  <div class="fg">
+    <label class="fl" for="edit-venue-in">Venue</label>
+    <input class="fi" id="edit-venue-in" autocomplete="off" placeholder="Search venue…">
+    <div class="ac-list" id="edit-venue-ac"></div>
+  </div>
+
+  <!-- City + Country -->
+  <div class="date-row">
+    <div class="fg">
+      <label class="fl" for="edit-city-in">City</label>
+      <input class="fi" id="edit-city-in">
+    </div>
+    <div class="fg">
+      <label class="fl" for="edit-country-in">Country</label>
+      <input class="fi" id="edit-country-in">
+    </div>
+  </div>
+
+  <!-- Date: show -->
+  <div class="fg" id="edit-date-show-fg">
+    <label class="fl" for="edit-date-in">Date</label>
+    <input class="fi" id="edit-date-in" type="date">
+  </div>
+
+  <!-- Date: festival -->
+  <div id="edit-date-fest-fg" style="display:none">
+    <div class="date-row">
+      <div class="fg">
+        <label class="fl" for="edit-date-from-in">From</label>
+        <input class="fi" id="edit-date-from-in" type="date">
+      </div>
+      <div class="fg">
+        <label class="fl" for="edit-date-to-in">To</label>
+        <input class="fi" id="edit-date-to-in" type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- Status (hidden for attended entries) -->
+  <div class="fg" id="edit-status-fg">
+    <label class="fl">Status</label>
+    <div class="status-btns" id="edit-status-btns">
+      <button class="s-btn" data-status="interested">Interested</button>
+      <button class="s-btn" data-status="planned">Planned</button>
+      <button class="s-btn" data-status="bought">Ticket ✓</button>
+      <button class="s-btn" data-status="attended">Attended</button>
+    </div>
+  </div>
+
+  <!-- Lineup section (festivals only) -->
+  <div id="edit-lineup-section" style="display:none">
+    <div class="lineup-hdr">
+      <span class="lineup-label" id="lineup-label">LINEUP · 0 ARTISTS</span>
+      <button class="lineup-fetch-btn" id="btn-lineup-fetch">
+        <span style="color:var(--amber)">●</span> Fetch from MusicBrainz
+      </button>
+    </div>
+    <div class="lineup-chips" id="lineup-chips"></div>
+
+    <!-- MusicBrainz results (shown after fetch) -->
+    <div id="lineup-mb-section" style="display:none">
+      <div class="lineup-mb-event" id="lineup-mb-event"></div>
+      <input class="fi" id="lineup-mb-filter" placeholder="Filter artists…"
+             style="display:none; margin-bottom:8px">
+      <div class="lineup-mb-chips" id="lineup-mb-chips"></div>
+      <div class="lineup-mb-actions" id="lineup-mb-actions"></div>
+    </div>
+
+    <!-- Manual add -->
+    <div class="lineup-add-row">
+      <div class="fg" style="flex:1;margin-bottom:0">
+        <input class="fi" id="lineup-add-in" placeholder="Add artist manually…" autocomplete="off">
+        <div class="ac-list" id="lineup-add-ac"></div>
+      </div>
+      <button class="lineup-add-btn" id="btn-lineup-add">+</button>
+    </div>
+  </div>
+
+  <button class="btn-add" id="btn-edit-save">Save changes</button>
 </div>
 
 <!-- Toast -->

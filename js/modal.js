@@ -16,15 +16,16 @@ export function closeModal() {
   $('modal').classList.remove('on');
   closeAC('artist-ac');
   closeAC('venue-ac');
+  closeAC('fest-ac');
 }
 
 export function resetModal() {
   ['artist-in','tour-in','fest-in','venue-in','city-in','date-in','date-from-in','date-to-in']
     .forEach(id => { $(id).value = ''; });
   state.storedCity = ''; state.storedCountry = '';
-  setModalStatus('planned');
+  setModalStatus('interested');
   setModalType('show');
-  closeAC('artist-ac'); closeAC('venue-ac');
+  closeAC('artist-ac'); closeAC('venue-ac'); closeAC('fest-ac');
   if (state.PlacesLib) state.placesToken = new state.PlacesLib.AutocompleteSessionToken();
 }
 
@@ -39,7 +40,8 @@ export function setModalType(type) {
 
 export function setModalStatus(s) {
   state.modalStatus = s;
-  document.querySelectorAll('.s-btn').forEach(b => {
+  // Only update buttons inside the add modal (not the edit modal)
+  document.querySelectorAll('#modal .s-btn').forEach(b => {
     b.className = 's-btn';
     if (b.dataset.status === s) b.classList.add(`on-${s}`);
   });
@@ -77,7 +79,7 @@ export function submitModal() {
       ...(city ? { city } : {}),
       ...(state.storedCountry ? { country: state.storedCountry } : {}),
       date: dateFrom,
-      ...(dateTo ? { dateEnd: dateTo } : {}),
+      ...(dateTo && dateTo !== dateFrom ? { dateEnd: dateTo } : {}),
       status: state.modalStatus, source: 'manual'
     });
   }

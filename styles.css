@@ -304,3 +304,132 @@ body {
   white-space: nowrap;
 }
 .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── INTERESTED status ── */
+.pill.interested    { background: #2a1a2e; color: #9b59b6; }
+.s-btn.on-interested { background: #2a1a2e; color: #9b59b6; border-color: #9b59b6; }
+
+/* ── TYPE FILTER PILLS ── */
+.type-pills {
+  display: flex; gap: 8px; padding: 8px 16px 6px;
+  background: var(--bg); flex-shrink: 0;
+}
+.type-pill {
+  font-family: 'Bebas Neue'; font-size: 14px; letter-spacing: .06em;
+  padding: 3px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: none; color: var(--dim);
+  cursor: pointer; transition: all .15s;
+}
+.type-pill.on { background: var(--green); color: #000; border-color: var(--green); }
+
+/* ── ROW — tappable, no swipe ── */
+.row {
+  cursor: pointer;
+  /* remove old transform/touch-action now that swipe is gone */
+  transform: none !important; touch-action: auto;
+}
+.row:active { background: var(--surface); }
+/* remove old swipe-delete markup styles */
+.row-wrap  { position: static; overflow: visible; }
+.del-reveal { display: none; }
+.btn-del    { display: none; }
+.row-sub.amber { color: var(--amber); }
+
+/* ── STATS BAR — 4 items, tighter gap ── */
+.stats { gap: 20px; }
+
+/* ── EDIT MODAL ── */
+.edit-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; min-height: 22px;
+}
+.btn-edit-del {
+  background: none; border: none; color: var(--red);
+  font-family: 'DM Mono'; font-size: 12px; cursor: pointer;
+  padding: 0; letter-spacing: .02em;
+}
+.btn-edit-del:hover { text-decoration: underline; }
+.edit-attended-label {
+  font-size: 10px; color: var(--dim); letter-spacing: .1em; text-transform: uppercase;
+}
+
+/* ── LINEUP SECTION ── */
+.lineup-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 4px 0 8px;
+}
+.lineup-label {
+  font-family: 'Bebas Neue'; font-size: 13px; letter-spacing: .08em; color: var(--dim);
+}
+.lineup-fetch-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-family: 'DM Mono'; font-size: 11px;
+  padding: 5px 10px; cursor: pointer; transition: background .15s;
+}
+.lineup-fetch-btn:hover    { background: var(--surface2); }
+.lineup-fetch-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.lineup-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 4px;
+}
+.chip {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 10px; font-size: 12px;
+}
+.chip-x {
+  background: none; border: none; color: var(--dim);
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
+}
+.chip-x:hover { color: var(--red); }
+
+.lineup-mb-event {
+  font-size: 11px; color: var(--text); margin-bottom: 8px; line-height: 1.6;
+  padding: 8px; background: var(--surface2); border-radius: 4px;
+}
+.lineup-mb-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 180px; overflow-y: auto;
+  margin-bottom: 8px; padding: 2px 0;
+}
+.mb-chip {
+  padding: 5px 10px; border-radius: 20px;
+  border: 1px solid var(--border); background: none;
+  font-size: 12px; font-family: 'DM Mono'; cursor: pointer; color: var(--text);
+  transition: all .12s;
+}
+.mb-chip.selected { background: var(--green); color: #000; border-color: var(--green); }
+.mb-chip:hover:not(.selected) { background: var(--surface2); }
+
+.lineup-mb-actions { display: flex; gap: 8px; margin-bottom: 8px; }
+.mb-action-btn {
+  flex: 1; padding: 8px; border-radius: 4px; cursor: pointer;
+  font-family: 'DM Mono'; font-size: 12px;
+  border: 1px solid var(--border); background: none; color: var(--text);
+  transition: background .15s;
+}
+.mb-action-btn:hover  { background: var(--surface2); }
+.mb-action-btn.muted  { flex: none; padding: 8px 12px; color: var(--dim); }
+.mb-action-btn.amber  { background: var(--amber); color: #000; border-color: var(--amber); flex: none; }
+.mb-action-btn.amber:hover { opacity: .88; }
+.mb-action-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.lineup-add-row {
+  display: flex; gap: 8px; align-items: flex-start; margin-top: 10px;
+}
+.lineup-add-row .fg { position: relative; }
+.lineup-add-btn {
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text); font-size: 22px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.lineup-add-btn:hover { background: #222; }
+
+/* ── DEV BADGE ── */
+.dev-badge {
+  font-family: 'Bebas Neue'; font-size: 11px; letter-spacing: .08em;
+  background: var(--amber); color: #000;
+  padding: 1px 6px; border-radius: 2px;
+}
