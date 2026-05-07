@@ -128,9 +128,47 @@ A record of every significant design and technical decision made, and why. Updat
 
 ---
 
+---
+
+## v3 Decisions (Checkpoint 3)
+
+### Input font-size: 16px (iOS zoom fix)
+**Decision:** All form inputs (`font-size: 16px`) and the search input raised to 16px.
+**Why:** iOS Safari auto-zooms the page when an input with `font-size < 16px` is focused. The zoom stays applied after the modal closes, leaving the main screen appearing "zoomed in." 16px is the exact threshold below which Safari triggers this behavior.
+**Side effect:** Inputs look marginally larger. Acceptable for a mobile-first app.
+
+### Modal height: `92dvh`
+**Decision:** Modal `max-height` changed from `92vh` to `max-height: 92dvh` (with `92vh` fallback).
+**Why:** `dvh` (dynamic viewport height) shrinks when the soft keyboard is visible, preventing the modal from overflowing the visible screen area. `vh` on iOS is fixed to the initial viewport and doesn't account for the keyboard. The `vh` fallback ensures compatibility with older browsers.
+
+### Notes field: first line only on list rows
+**Decision:** Notes are shown on list rows as one truncated line below the venue subtext, only when notes exist.
+**Why:** Full notes would make rows significantly taller and add visual noise to the list. The first line (e.g. "on sale Friday, going with Leila") is usually the most actionable snippet. Full notes are always visible in the edit sheet.
+**Considered:** A small note icon/indicator instead of text. Rejected because an icon alone isn't readable at a glance — the user would have to tap every entry to see if the note was relevant.
+
+### Multi-date add creates separate entries
+**Decision:** When adding a show with multiple dates, each date creates a fully independent entry in the data.
+**Why:** Each show date is a distinct event (different setlist, different experience). Grouping them as one record with multiple dates would complicate the edit sheet, sorting, and status tracking — you might have gone to some nights but not others.
+**UI:** The add modal shows a date list; "+ Add another date" appends rows; submitting creates N entries sharing artist/venue/tour/notes/status.
+
+### Type toggle in edit sheet
+**Decision:** Show ↔ Festival toggle added to the edit sheet. The type is saved based on the toggle state at save time.
+**Why:** Users occasionally misclassify entries on add. Without a type toggle, fixing a mislabeled entry required deleting and re-adding it.
+**Remapping logic:** Fields that exist on both types (venue, city, country, date, notes, status) are preserved. Fields unique to one type (artist/tour vs. festival/dateEnd/lineup) are handled: the name field transfers, the rest clear. Lineup is preserved into Notes when switching from Festival to Show.
+**Warning gates:** Show→Festival warns if tour value will be lost. Festival→Show always warns before discarding lineup (and moves it to notes).
+
+### Lineup paste textarea
+**Decision:** Added a "Paste list" textarea in the lineup section as an alternative to MusicBrainz fetch for entering artist names.
+**Why:** MusicBrainz is unreliable for festivals (only has past events, and coverage varies). Users may have artist lists from other sources (Wikipedia, festival announcement). A paste textarea handles comma/newline/semicolon-separated text and adds all artists at once.
+**MusicBrainz retained:** Still useful for festivals that are in the database, so the fetch button was kept.
+
+---
+
 ## Future Decisions (Pending)
 
 - **Offline support:** Service worker + local cache. Deferred post-MVP.
 - **Last.fm artist data:** Pull top artists to power recommendations. API still works for read operations.
 - **CSV export:** Let user download their data. Simple JSON → CSV conversion.
 - **Multiple festivals same weekend:** Date range overlap handling not yet defined.
+- **URL/poster lineup scraping:** Fetching artist lists from a URL (festival website, Songkick, etc.) would require a backend proxy due to CORS. Out of scope for static-only app.
+- **Token auto-refresh:** Google OAuth access tokens expire ~hourly. Avoiding re-login would require a backend to store a refresh token. Out of scope with current drive.file scope approach.

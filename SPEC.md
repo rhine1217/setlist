@@ -1,4 +1,4 @@
-# SETLIST — Project Specification (v2)
+# SETLIST — Project Specification (v3)
 
 > A lightweight personal concert tracking app. Hosted on GitHub Pages, data stored in Google Drive as a single JSON file.
 
@@ -54,7 +54,8 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
   "country": "United States",
   "date": "2025-10-25",
   "status": "attended",
-  "source": "manual"
+  "source": "manual",
+  "notes": "on sale Friday, going with Leila"
 }
 ```
 
@@ -71,7 +72,8 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
   "dateEnd": "2025-06-29",
   "status": "attended",
   "lineup": ["Pixies", "PJ Harvey", "Idles"],
-  "source": "lastfm"
+  "source": "lastfm",
+  "notes": "Leisa has tickets, camping in Park"
 }
 ```
 
@@ -79,8 +81,8 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| id | string | yes | `Date.now().toString()` for manual, `lastfm_NNNN` for imported |
-| type | `show` \| `festival` | yes | Controls form fields and row color |
+| id | string | yes | `Date.now().toString(36) + random suffix` for manual, `lastfm_NNNN` for imported |
+| type | `show` \| `festival` | yes | Controls form fields and row color; editable via type toggle in edit sheet |
 | artist | string | show only | MusicBrainz autocomplete |
 | tour | string | show only | Optional, free text |
 | festival | string | festival only | Free text with alias autocomplete |
@@ -88,10 +90,11 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
 | city | string | yes | Auto-filled by Places |
 | country | string | yes | Auto-filled by Places |
 | date | string (YYYY-MM-DD) | yes | ISO date |
-| dateEnd | string (YYYY-MM-DD) | festival only | Optional end date; defaults to same as `date` in form |
-| status | `interested` \| `planned` \| `bought` \| `attended` | yes | Cycles on tap |
+| dateEnd | string (YYYY-MM-DD) | festival only | Optional end date; defaults to same as `date` in form; validated ≥ `date` |
+| status | `interested` \| `planned` \| `bought` \| `attended` | yes | Cycles on tap; auto-set to `attended` when past date is picked |
 | lineup | string[] | festival only | Optional array of artist name strings |
 | source | `manual` \| `lastfm` | yes | For provenance tracking |
+| notes | string | no | Optional free text; first line shown inline on list rows |
 
 ---
 
@@ -107,11 +110,18 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
 ### Add Modal
 - Slides up from bottom (sheet pattern)
 - Toggle at top: **SHOW** | **FESTIVAL**
-- **Show fields:** Artist (autocomplete) → Tour/Event name (optional) → Venue (Places autocomplete, fills City) → Date → Status
-- **Festival fields:** Festival Title (with alias autocomplete) → Venue (Places autocomplete, fills City) → Date From → Date To (defaults to same as From) → Status
-- Enter key advances through fields
+- **Show fields:** Artist (autocomplete) → Tour/Event name (optional) → Venue (Places autocomplete, fills City) → Date(s) → Notes (optional) → Status
+- **Festival fields:** Festival Title (with alias autocomplete) → Venue (Places autocomplete, fills City) → Date From → Date To (defaults to same as From, min enforced) → Notes (optional) → Status
+- Enter key advances through named fields; Enter on a date input submits
 - Submit on final field Enter or tap ADD
 - Default status for new entries: **Interested**
+- Picking a past date auto-sets status to **Attended**
+
+### Multi-date add (shows only)
+- The Date field is a list starting with one row
+- **"+ Add another date"** link appends a new date input row; each extra row has a `×` remove button
+- On submit, one show entry is created **per date**, all sharing artist/tour/venue/city/status/notes
+- Festival type uses the standard Date From / Date To range (no multi-date)
 
 ### Festival name autocomplete
 - When typing in the festival name field (add or edit), autocomplete suggestions are drawn from two sources in order: the user's own existing festival titles already in the data, and a hardcoded alias map for common shorthand. Suggestions appear as a dropdown below the field; tap to accept.
@@ -131,6 +141,7 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
 - **Shows** → green (`#c8f53b`) left accent + status pill
 - **Festivals** → amber (`#f5a623`) left accent + status pill
 - Festival rows with a non-empty lineup show artist count as subtext (e.g. `12 artists · The Warfield`)
+- If an entry has a `notes` field, the first line is shown below the subtext in dim italic (truncated with ellipsis)
 - Status pill cycles on tap: `INTERESTED → PLANNED → TICKET ✓ → ATTENDED`
 - **No swipe-to-delete.** Delete is only accessible inside the edit sheet.
 - Tap any row to open the edit sheet
@@ -141,17 +152,25 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
 - Ticket ✓ = teal pill
 - Attended = grey pill
 
+### Edit sheet — all entries
+- **Show ↔ Festival type toggle** at top of sheet (below delete/label header)
+  - Switching type remaps fields: artist name ↔ festival name, date ↔ date range, tour/lineup appear/disappear
+  - Show → Festival: warns if Tour has a value (`"Tour name '[x]' will be removed. Switch to Festival?"`)
+  - Festival → Show: warns and preserves lineup in Notes (`"Switch to Show? Lineup (N artists) will be moved to Notes."`)
+- **Notes field** (textarea) at bottom of sheet, above Save button
+
 ### Edit sheet — upcoming shows
 - Tap row → sheet slides up, all fields pre-populated and editable
-- Fields: Artist, Tour, Venue, City, Country, Date, Status
+- Fields: [type toggle], Artist, Tour, Venue, City, Country, Date, Status, Notes
 - Status field taps cycle through all states inline (same as pill on list row)
+- Picking a past date auto-sets status to Attended
 - "Delete" text button in sheet header (red) → confirmation dialog before deleting
 - "Save changes" primary button writes to Drive
 
 ### Edit sheet — attended events (shows and festivals)
 - Tap row → sheet slides up, all fields pre-populated and editable
 - Subtle "attended — limited edits" label in header (status not changeable from this view)
-- All other fields are editable (title, venue, dates, city, country)
+- All other fields are editable (title, venue, dates, city, country, notes)
 - Delete requires stronger confirmation dialog: `"This will permanently delete [event name]. Are you sure?"`
 - "Save changes" primary button writes to Drive
 
@@ -168,7 +187,8 @@ All data lives in a single file `setlist-data.json` in the user's Google Drive r
   - On large festivals (50+ artists) the chip list is scrollable with a search/filter input at the top
   - If MusicBrainz returns no match or a network error: surface a clear message and fall back to manual entry
   - Note: MusicBrainz only has past events — fetch will not work for future/upcoming festivals
-- **Manual add fallback:** plain text input below the chips — type artist name, hit Enter or tap +, appends to lineup array. Reuses existing MusicBrainz artist autocomplete.
+- **Manual add:** plain text input below chips — type artist name, hit Enter or tap +, appends to lineup array. Reuses MusicBrainz artist autocomplete.
+- **Paste list:** textarea below manual add (separated by a divider) — paste comma/newline/semicolon-separated artist names, tap "Add all from list"; duplicates are skipped
 
 ### MusicBrainz lineup fetch — implementation notes
 - Event search endpoint: `https://musicbrainz.org/ws/2/event/?query=event:{name}+begin:{year}&fmt=json`
