@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { $, toast, closeAC, cap, esc } from './utils.js';
+import { $, today, toast, closeAC, cap, esc } from './utils.js';
 import { scheduleSave } from './drive.js';
 import { render, deleteEntry } from './render.js';
 
@@ -17,18 +17,16 @@ export function openEditSheet(id) {
   const isFest     = e.type === 'festival';
 
   $('edit-attended-label').style.display = isAttended ? '' : 'none';
-  $('edit-show-fields').style.display    = isFest ? 'none' : '';
-  $('edit-fest-fields').style.display    = isFest ? '' : 'none';
-  $('edit-date-show-fg').style.display   = isFest ? 'none' : '';
-  $('edit-date-fest-fg').style.display   = isFest ? '' : 'none';
   $('edit-status-fg').style.display      = isAttended ? 'none' : '';
-  $('edit-lineup-section').style.display = isFest ? '' : 'none';
+
+  _applyEditTypeUI(isFest ? 'festival' : 'show');
 
   // Populate fields
   if (isFest) {
     $('edit-fest-in').value      = e.festival || '';
     $('edit-date-from-in').value = e.date || '';
     $('edit-date-to-in').value   = e.dateEnd || e.date || '';
+    $('edit-date-to-in').min     = e.date || '';
   } else {
     $('edit-artist-in').value = e.artist ? cap(e.artist) : '';
     $('edit-tour-in').value   = e.tour || '';
@@ -37,12 +35,14 @@ export function openEditSheet(id) {
   $('edit-venue-in').value   = e.venue   || '';
   $('edit-city-in').value    = e.city    || '';
   $('edit-country-in').value = e.country || '';
+  $('edit-notes-in').value   = e.notes   || '';
 
   if (!isAttended) setEditStatus(e.status || 'planned');
 
   renderLineupChips();
   _hideMBSection();
-  $('lineup-add-in').value = '';
+  $('lineup-add-in').value   = '';
+  $('lineup-paste-in').value = '';
 
   $('edit-backdrop').classList.add('on');
   $('edit-modal').classList.add('on');
@@ -59,6 +59,59 @@ export function closeEditSheet() {
   _hideMBSection();
   state.editId     = null;
   state.editLineup = [];
+}
+
+// ── Type switching ────────────────────────────────────────────────────────────
+
+function _applyEditTypeUI(type) {
+  const isFest = type === 'festival';
+  document.querySelectorAll('#edit-type-toggle .type-btn').forEach(b =>
+    b.classList.toggle('on', b.dataset.type === type)
+  );
+  $('edit-show-fields').style.display    = isFest ? 'none' : '';
+  $('edit-fest-fields').style.display    = isFest ? '' : 'none';
+  $('edit-date-show-fg').style.display   = isFest ? 'none' : '';
+  $('edit-date-fest-fg').style.display   = isFest ? '' : 'none';
+  $('edit-lineup-section').style.display = isFest ? '' : 'none';
+}
+
+export function switchEditType(newType) {
+  if (!state.editId) return;
+  const currentType = $('edit-type-btn-festival').classList.contains('on') ? 'festival' : 'show';
+  if (newType === currentType) return;
+
+  if (currentType === 'show' && newType === 'festival') {
+    const tour = $('edit-tour-in').value.trim();
+    if (tour && !confirm(`Tour name "${tour}" will be removed. Switch to Festival?`)) return;
+    $('edit-fest-in').value   = $('edit-artist-in').value;
+    $('edit-artist-in').value = '';
+    $('edit-tour-in').value   = '';
+    // Move show date to fest date-from
+    $('edit-date-from-in').value = $('edit-date-in').value;
+    $('edit-date-to-in').value   = $('edit-date-in').value;
+    $('edit-date-in').value      = '';
+    _applyEditTypeUI('festival');
+
+  } else if (currentType === 'festival' && newType === 'show') {
+    const lineupCount = state.editLineup.length;
+    const msg = lineupCount > 0
+      ? `Switch to Show? The lineup (${lineupCount} artists) will be moved to Notes.`
+      : 'Switch to Show?';
+    if (!confirm(msg)) return;
+    $('edit-artist-in').value = $('edit-fest-in').value;
+    $('edit-fest-in').value   = '';
+    // Move fest date-from to show date
+    $('edit-date-in').value      = $('edit-date-from-in').value;
+    $('edit-date-from-in').value = '';
+    $('edit-date-to-in').value   = '';
+    if (lineupCount > 0) {
+      const lineupText = state.editLineup.join(', ');
+      const existing   = $('edit-notes-in').value.trim();
+      $('edit-notes-in').value = existing ? existing + '\n' + lineupText : lineupText;
+      state.editLineup = [];
+    }
+    _applyEditTypeUI('show');
+  }
 }
 
 // ── Status ────────────────────────────────────────────────────────────────────
@@ -83,16 +136,20 @@ export function saveEdit() {
   const venue   = $('edit-venue-in').value.trim()   || undefined;
   const city    = $('edit-city-in').value.trim()    || undefined;
   const country = $('edit-country-in').value.trim() || undefined;
+  const notes   = $('edit-notes-in').value.trim()   || undefined;
   const lineup  = state.editLineup.length ? [...state.editLineup] : undefined;
 
-  if (e.type === 'show') {
+  const isFest = $('edit-type-btn-festival').classList.contains('on');
+
+  if (!isFest) {
     const artist = $('edit-artist-in').value.trim();
     const date   = $('edit-date-in').value;
     if (!artist) { toast('Artist is required.'); $('edit-artist-in').focus(); return; }
     if (!date)   { toast('Date is required.');   $('edit-date-in').focus();   return; }
     const tour = $('edit-tour-in').value.trim() || undefined;
     state.setlist[idx] = _clean({
-      ...e, artist: artist.toLowerCase(), tour, venue, city, country, date,
+      ...e, type: 'show', artist: artist.toLowerCase(), tour, venue, city, country, date, notes,
+      dateEnd: undefined, festival: undefined, lineup: undefined,
       ...(e.status !== 'attended' ? { status: state.modalStatus } : {}),
     });
   } else {
@@ -101,9 +158,15 @@ export function saveEdit() {
     const dateTo   = $('edit-date-to-in').value;
     if (!festival) { toast('Festival name is required.'); $('edit-fest-in').focus();      return; }
     if (!dateFrom) { toast('Start date is required.');    $('edit-date-from-in').focus(); return; }
+    if (dateTo && dateTo < dateFrom) {
+      toast("End date can't be before start date.");
+      $('edit-date-to-in').focus();
+      return;
+    }
     const dateEnd = (dateTo && dateTo !== dateFrom) ? dateTo : undefined;
     state.setlist[idx] = _clean({
-      ...e, festival, venue, city, country, date: dateFrom, dateEnd, lineup,
+      ...e, type: 'festival', festival, venue, city, country, date: dateFrom, dateEnd, lineup, notes,
+      artist: undefined, tour: undefined,
       ...(e.status !== 'attended' ? { status: state.modalStatus } : {}),
     });
   }
@@ -152,6 +215,20 @@ export function addLineupArtist(name) {
 function removeLineupArtist(name) {
   state.editLineup = state.editLineup.filter(n => n !== name);
   renderLineupChips();
+}
+
+export function parseAndAddLineupText(text) {
+  const artists = text.split(/[,;\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (!artists.length) { toast('No artists found in text.'); return; }
+  let added = 0;
+  artists.forEach(name => {
+    if (!state.editLineup.includes(name)) { state.editLineup.push(name); added++; }
+  });
+  renderLineupChips();
+  $('lineup-paste-in').value = '';
+  toast(`Added ${added} artist${added !== 1 ? 's' : ''}.`);
 }
 
 // ── MusicBrainz lineup fetch ──────────────────────────────────────────────────
@@ -205,7 +282,7 @@ async function _fetchArtistsForEvent(mbid, eventName) {
   if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Fetching…'; }
 
   try {
-    await new Promise(r => setTimeout(r, 1000)); // respect 1 req/sec rate limit
+    await new Promise(r => setTimeout(r, 1000));
     const r = await fetch(`https://musicbrainz.org/ws/2/event/${mbid}?inc=artist-rels&fmt=json`,
       { headers: { 'User-Agent': MB_UA } });
     const d = await r.json();

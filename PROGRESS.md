@@ -4,7 +4,7 @@ Track build status, checkpoints, and what's next. Update after every Claude Code
 
 ---
 
-## Status: 🟡 Checkpoint 2 complete — ready to merge to main, then verify on production
+## Status: 🟡 Checkpoint 3 in progress — feature branch ready for local testing
 
 ---
 
@@ -88,7 +88,31 @@ Track build status, checkpoints, and what's next. Update after every Claude Code
 
 ---
 
-### 🔲 Checkpoint 3 — Production verify
+### 🟡 Checkpoint 3 — Feature build (in progress)
+**Date:** 2026-05-06
+**Branch:** `claude/naughty-dhawan-bf06f8`
+**What was built:**
+- [x] 3A — iOS zoom fix: input `font-size` raised to 16px (Safari auto-zoom threshold); modal uses `max-height: 92dvh`
+- [x] 3B — Notes field: optional free text on shows and festivals; first line shown inline on list rows in dim italic
+- [x] 3C — Multi-date add: show type supports adding multiple dates; creates one entry per date on submit
+- [x] 3D — Festival end-date validation: `min` attribute set dynamically on date-to; toast error if end < start in both add modal and edit sheet
+- [x] 3E — Auto-attended: status auto-sets to Attended when a past date is picked (add modal + edit sheet)
+- [x] 3F — Text-paste lineup: textarea in edit lineup section; paste comma/newline-separated artists and add all at once; MusicBrainz button retained
+- [x] 3G — Edit type toggle: Show ↔ Festival toggle in edit sheet with field remapping; Show→Festival warns if tour value will be lost; Festival→Show warns and preserves lineup in notes field
+
+**Before merging to main:**
+- [ ] Local test: add a show with 3 dates → verify 3 entries created
+- [ ] Local test: add notes to an entry → verify shown on list row
+- [ ] Local test: try to set festival end date before start → verify blocked
+- [ ] Local test: add a show with past date → verify auto-attended
+- [ ] Local test: paste lineup text → verify chips created
+- [ ] Local test: switch entry type show→festival and festival→show → verify field remapping and warnings
+- [ ] Revert `js/config.js` `FILE_NAME` from `'setlist-data-dev.json'` to `'setlist-data.json'`
+- [ ] Merge branch to main (user action)
+
+---
+
+### 🔲 Checkpoint 4 — Production verify
 
 After merging and GitHub Pages deploys:
 - [ ] Sign in at https://rhine1217.github.io/setlist

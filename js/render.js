@@ -103,11 +103,16 @@ export function rowHTML(e) {
     if (sub) subHTML = `<div class="row-sub">${esc(sub)}</div>`;
   }
 
+  const noteHTML = e.notes
+    ? `<div class="row-note">${esc(e.notes.split('\n')[0])}</div>`
+    : '';
+
   return `
 <div class="row ${esc(e.type)}" data-id="${esc(e.id)}">
   <div class="row-body">
     <div class="row-title">${esc(title)}</div>
     ${subHTML}
+    ${noteHTML}
   </div>
   <div class="row-meta">
     <div class="row-date">${esc(dateStr)}</div>

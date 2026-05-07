@@ -117,10 +117,16 @@
     <input class="fi" id="city-in" placeholder="e.g. San Francisco, CA">
   </div>
 
-  <!-- Date: show -->
-  <div class="fg" id="date-show-fg">
-    <label class="fl" for="date-in">Date</label>
-    <input class="fi" id="date-in" type="date">
+  <!-- Date: show (multi-date) -->
+  <div id="date-show-fg">
+    <label class="fl">Date</label>
+    <div class="multi-date-list" id="multi-date-list">
+      <div class="multi-date-row">
+        <input class="fi multi-date-in" type="date">
+        <button class="btn-date-remove" style="display:none" aria-label="Remove date">×</button>
+      </div>
+    </div>
+    <button class="btn-date-add" id="btn-date-add">+ Add another date</button>
   </div>
 
   <!-- Date: festival -->
@@ -146,6 +152,12 @@
       <button class="s-btn"              data-status="bought">Ticket ✓</button>
       <button class="s-btn"              data-status="attended">Attended</button>
     </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="fg">
+    <label class="fl" for="notes-in">Notes <span>(optional)</span></label>
+    <textarea class="fi" id="notes-in" rows="2" placeholder="on sale dates, going with…" style="resize:none"></textarea>
   </div>
 
   <button class="btn-add" id="btn-add">Add</button>
@@ -176,6 +188,12 @@
   <div class="edit-hdr">
     <button class="btn-edit-del" id="btn-edit-del">Delete</button>
     <span class="edit-attended-label" id="edit-attended-label">attended — limited edits</span>
+  </div>
+
+  <!-- Type toggle (edit) -->
+  <div class="type-toggle" id="edit-type-toggle">
+    <button class="type-btn on" data-type="show" id="edit-type-btn-show">Show</button>
+    <button class="type-btn"   data-type="festival" id="edit-type-btn-festival">Festival</button>
   </div>
 
   <!-- Show fields (edit) -->
@@ -277,6 +295,21 @@
       </div>
       <button class="lineup-add-btn" id="btn-lineup-add">+</button>
     </div>
+
+    <!-- Paste multiple artists -->
+    <div class="lineup-paste-row">
+      <label class="fl">Paste list <span>(comma or line separated)</span></label>
+      <textarea class="fi" id="lineup-paste-in" rows="2"
+        placeholder="arctic monkeys, the strokes, pj harvey…"
+        style="resize:none;margin-bottom:6px"></textarea>
+      <button class="lineup-paste-btn" id="btn-lineup-paste">+ Add all from list</button>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="fg">
+    <label class="fl" for="edit-notes-in">Notes <span>(optional)</span></label>
+    <textarea class="fi" id="edit-notes-in" rows="2" placeholder="on sale dates, going with…" style="resize:none"></textarea>
   </div>
 
   <button class="btn-add" id="btn-edit-save">Save changes</button>

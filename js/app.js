@@ -1,14 +1,15 @@
-import { $, closeAC, toast } from './utils.js';
+import { $, today, closeAC, toast } from './utils.js';
 import { state } from './state.js';
 import { FILE_NAME, PLACES_API_KEY } from './config.js';
 import { initAuth, signIn, signOut } from './auth.js';
 import { doImport, closeImportModal } from './drive.js';
 import { render, setRowClickHandler } from './render.js';
-import { openModal, closeModal, setModalType, setModalStatus, submitModal } from './modal.js';
+import { openModal, closeModal, setModalType, setModalStatus, submitModal, addDateRow } from './modal.js';
 import { searchArtists, searchVenues, searchFestivals, initPlaces } from './autocomplete.js';
 import {
   openEditSheet, closeEditSheet, setEditStatus, saveEdit,
   deleteFromEdit, fetchLineup, addLineupArtist, renderLineupChips,
+  parseAndAddLineupText, switchEditType,
 } from './edit.js';
 
 // ── Row click → edit sheet ────────────────────────────────────────────────────
@@ -27,8 +28,9 @@ $('btn-signout').addEventListener('click', signOut);
 $('fab').addEventListener('click', openModal);
 $('backdrop').addEventListener('click', closeModal);
 $('btn-add').addEventListener('click', submitModal);
+$('btn-date-add').addEventListener('click', addDateRow);
 
-document.querySelectorAll('.type-btn').forEach(b =>
+document.querySelectorAll('#modal .type-btn').forEach(b =>
   b.addEventListener('click', () => setModalType(b.dataset.type))
 );
 document.querySelectorAll('#modal .s-btn').forEach(b =>
@@ -42,7 +44,7 @@ $('artist-in').addEventListener('blur', () => setTimeout(() => closeAC('artist-a
 
 $('venue-in').addEventListener('input', e =>
   searchVenues(e.target.value, {
-    nextId: state.modalType === 'show' ? 'date-in' : 'date-from-in',
+    nextId: state.modalType === 'show' ? null : 'date-from-in',
   })
 );
 $('venue-in').addEventListener('blur', () => setTimeout(() => closeAC('venue-ac'), 160));
@@ -50,27 +52,38 @@ $('venue-in').addEventListener('blur', () => setTimeout(() => closeAC('venue-ac'
 $('fest-in').addEventListener('input', e => searchFestivals(e.target.value));
 $('fest-in').addEventListener('blur',  () => setTimeout(() => closeAC('fest-ac'), 160));
 
-// Festival date-to auto-fill (add modal)
+// Festival date-from: auto-fill date-to, set min, auto-attended (add modal)
 let prevDateFrom = '';
 $('date-from-in').addEventListener('change', e => {
   const to = $('date-to-in');
   if (!to.value || to.value === prevDateFrom) to.value = e.target.value;
-  prevDateFrom = e.target.value;
+  prevDateFrom  = e.target.value;
+  to.min        = e.target.value;
+  if (e.target.value && e.target.value < today()) setModalStatus('attended');
 });
 
 // Add modal Enter-key navigation
 const FIELDS = {
-  show:     ['artist-in', 'tour-in', 'venue-in', 'city-in', 'date-in'],
+  show:     ['artist-in', 'tour-in', 'venue-in', 'city-in'],
   festival: ['fest-in', 'venue-in', 'city-in', 'date-from-in', 'date-to-in'],
 };
 $('modal').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const fields = FIELDS[state.modalType];
   const idx    = fields.indexOf(document.activeElement?.id);
-  if (idx === -1) return;
+  if (idx === -1) {
+    if (document.activeElement?.classList.contains('multi-date-in')) {
+      e.preventDefault(); submitModal();
+    }
+    return;
+  }
   e.preventDefault();
   if (idx < fields.length - 1) $(fields[idx + 1]).focus();
-  else submitModal();
+  else if (state.modalType === 'show') {
+    $('multi-date-list').querySelector('.multi-date-in')?.focus();
+  } else {
+    submitModal();
+  }
 });
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
@@ -121,6 +134,10 @@ document.querySelectorAll('#edit-status-btns .s-btn').forEach(b =>
   b.addEventListener('click', () => setEditStatus(b.dataset.status))
 );
 
+// Edit type toggle
+$('edit-type-btn-show').addEventListener('click',     () => switchEditType('show'));
+$('edit-type-btn-festival').addEventListener('click', () => switchEditType('festival'));
+
 $('edit-artist-in').addEventListener('input', e =>
   searchArtists(e.target.value, {
     inputId: 'edit-artist-in', acId: 'edit-artist-ac',
@@ -144,12 +161,21 @@ $('edit-fest-in').addEventListener('input', e =>
 );
 $('edit-fest-in').addEventListener('blur', () => setTimeout(() => closeAC('edit-fest-ac'), 160));
 
-// Festival date-to auto-fill (edit modal)
+// Edit show date: auto-attended
+$('edit-date-in').addEventListener('change', e => {
+  if (e.target.value && e.target.value < today() && $('edit-status-fg').style.display !== 'none')
+    setEditStatus('attended');
+});
+
+// Festival date-from: auto-fill date-to, set min, auto-attended (edit modal)
 let prevEditDateFrom = '';
 $('edit-date-from-in').addEventListener('change', e => {
   const to = $('edit-date-to-in');
   if (!to.value || to.value === prevEditDateFrom) to.value = e.target.value;
   prevEditDateFrom = e.target.value;
+  to.min           = e.target.value;
+  if (e.target.value && e.target.value < today() && $('edit-status-fg').style.display !== 'none')
+    setEditStatus('attended');
 });
 
 // ── Lineup ────────────────────────────────────────────────────────────────────
@@ -177,6 +203,11 @@ $('lineup-add-in').addEventListener('blur', () => setTimeout(() => closeAC('line
 $('btn-lineup-add').addEventListener('click', () => {
   const val = $('lineup-add-in').value.trim();
   if (val) { addLineupArtist(val); $('lineup-add-in').value = ''; renderLineupChips(); }
+});
+
+$('btn-lineup-paste').addEventListener('click', () => {
+  const text = $('lineup-paste-in').value.trim();
+  if (text) parseAndAddLineupText(text);
 });
 
 // ── Dev mode badge ────────────────────────────────────────────────────────────
