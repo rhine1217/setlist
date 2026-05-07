@@ -100,16 +100,22 @@ On list rows, only the **first line** of notes is shown. Empty `notes` fields re
 
 **After:**
 - When the user picks a **Date From** value, the **Date To** input has its `min` attribute set to match, so the native date picker won't allow an earlier selection.
-- On submit (add modal) and save (edit sheet), if `dateTo < dateFrom`, a toast error is shown and focus moves to the To field: `"End date can't be before start date."`
+- On submit (add modal) and save (edit sheet), if `dateTo < dateFrom`, an **inline error** is shown directly below the To field: `"End date can't be before start date"`. The To input gets a red border (`.fi.error`). Focus moves to the To field.
+- The error clears automatically when the user changes the To field value.
+- The error also clears when the modal is reset (on close) or when the edit sheet is reopened.
+- Error text is rendered by a `<span class="field-err">` element placed inside the `.fg` wrapper immediately after the input.
 
 ---
 
-## 5. Auto-Attended (new behavior)
+## 5. Auto-Status on Date Pick (updated)
 
-When a date is picked in the **add modal** or **edit sheet** and that date is in the past (before today), the Status automatically switches to **Attended**.
+When a date is picked in the **add modal** or **edit sheet**, the Status automatically updates based on whether the date is in the past or future.
 
+- **Past date** → status switches to **Attended**
+- **Future date** → status switches to **Interested**
 - Applies to: show date field in add modal, festival Date From in add modal, show date in edit sheet, festival Date From in edit sheet
-- Only fires when the status section is visible (i.e., not on entries that are already locked to attended)
+- Only fires when the status section is visible (i.e., not on entries already locked to attended)
+- Partial / invalid years (e.g. year < 1900, such as when the user has only typed "20" into the year field) are ignored — no status change fires until a plausible 4-digit year is present
 - The user can manually override the status after the auto-set
 
 ---
@@ -173,3 +179,12 @@ The **MusicBrainz fetch button is retained** for past festivals where the databa
 ## 10. Auth — Token Expiry Note (informational)
 
 Google OAuth access tokens expire after ~1 hour. The token is stored in `localStorage` under `sl_token`. As a PWA, localStorage persists between sessions until the user manually clears storage. Re-authentication prompts approximately once per hour during active use; the sign-in is one-tap since Google remembers the account. A server-side refresh token would avoid this but requires a backend — out of scope.
+
+---
+
+## Deferred (not in v3)
+
+### Lineup paste — fuzzy artist name matching
+**Proposed:** When pasting a comma/newline-separated artist list, each name would be sent to the MusicBrainz search API; if the top result score ≥ 85, the canonical MB name replaces the raw input (e.g. "artic monekys" → "Arctic Monkeys").
+
+**Why deferred:** Requires N async API calls per paste, adding latency and complexity (loading state, error handling per artist, possible false positives). The manual add input already benefits from live MB autocomplete for typo correction. Deferred to a future checkpoint.

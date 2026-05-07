@@ -83,8 +83,8 @@ Track build status, checkpoints, and what's next. Update after every Claude Code
 - [x] `SPEC.md` and `DECISIONS.md` updated to reflect v2 state and committed to git
 
 **Before merging to main:**
-- [ ] Revert `js/config.js` `FILE_NAME` from `'setlist-data-dev.json'` to `'setlist-data.json'`
-- [ ] Merge branch to main (user action — see merge instructions below)
+- [x] Revert `js/config.js` `FILE_NAME` from `'setlist-data-dev.json'` to `'setlist-data.json'`
+- [ ] Merge branch to main (user action)
 
 ---
 
@@ -99,20 +99,31 @@ Track build status, checkpoints, and what's next. Update after every Claude Code
 - [x] 3E — Auto-attended: status auto-sets to Attended when a past date is picked (add modal + edit sheet)
 - [x] 3F — Text-paste lineup: textarea in edit lineup section; paste comma/newline-separated artists and add all at once; MusicBrainz button retained
 - [x] 3G — Edit type toggle: Show ↔ Festival toggle in edit sheet with field remapping; Show→Festival warns if tour value will be lost; Festival→Show warns and preserves lineup in notes field
+- [x] 3H — Auto-status fix: year guard added (ignores partial years < 1900); now bidirectional — past date → attended, future date → interested (was past-only)
+- [x] 3I — Inline end-date error: replaced toast with inline red error text + red border on the To field; error clears on field change or modal reset
 
 **Before merging to main:**
-- [ ] Local test: add a show with 3 dates → verify 3 entries created
-- [ ] Local test: add notes to an entry → verify shown on list row
-- [ ] Local test: try to set festival end date before start → verify blocked
-- [ ] Local test: add a show with past date → verify auto-attended
+- [x] Local test: add a show with 3 dates → verify 3 entries created
+- [x] Local test: add notes to an entry → verify shown on list row
+- [x] Local test: try to set festival end date before start → verify blocked
+- [ ] Local test: add a show with past date → verify auto-attended; change to future date → verify switches to interested
+- [ ] Local test: add festival with end date before start → verify inline error appears on To field
 - [ ] Local test: paste lineup text → verify chips created
-- [ ] Local test: switch entry type show→festival and festival→show → verify field remapping and warnings
+- [x] Local test: switch entry type show→festival and festival→show → verify field remapping and warnings
 - [ ] Revert `js/config.js` `FILE_NAME` from `'setlist-data-dev.json'` to `'setlist-data.json'`
 - [ ] Merge branch to main (user action)
 
 ---
 
-### 🔲 Checkpoint 4 — Production verify
+### 🔲 Checkpoint 4 — Backlog (future)
+
+Items deferred from v3 testing:
+
+- [ ] **Lineup paste fuzzy match** — When pasting artist names, query MusicBrainz per artist and auto-correct to canonical name if score ≥ 85 (e.g. "artic monekys" → "Arctic Monkeys"). Needs async handling, loading state, false-positive risk. See `specs/SPEC-v3-delta.md` Deferred section for full spec.
+
+---
+
+### 🔲 Checkpoint 5 — Production verify
 
 After merging and GitHub Pages deploys:
 - [ ] Sign in at https://rhine1217.github.io/setlist

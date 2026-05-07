@@ -252,7 +252,9 @@ body {
   padding: 10px 12px; outline: none; transition: border-color .15s;
 }
 .fi:focus { border-color: #3a3a3a; }
+.fi.error { border-color: var(--red); }
 .fi::placeholder { color: #333; }
+.field-err { color: var(--red); font-size: 11px; display: block; margin-top: 3px; min-height: 0; }
 
 .date-row { display: flex; gap: 10px; }
 .date-row .fg { flex: 1; }

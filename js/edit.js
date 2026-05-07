@@ -39,6 +39,8 @@ export function openEditSheet(id) {
 
   if (!isAttended) setEditStatus(e.status || 'planned');
 
+  $('edit-date-to-in').classList.remove('error');
+  $('edit-date-to-err').textContent = '';
   renderLineupChips();
   _hideMBSection();
   $('lineup-add-in').value   = '';
@@ -159,7 +161,8 @@ export function saveEdit() {
     if (!festival) { toast('Festival name is required.'); $('edit-fest-in').focus();      return; }
     if (!dateFrom) { toast('Start date is required.');    $('edit-date-from-in').focus(); return; }
     if (dateTo && dateTo < dateFrom) {
-      toast("End date can't be before start date.");
+      $('edit-date-to-in').classList.add('error');
+      $('edit-date-to-err').textContent = "End date can't be before start date";
       $('edit-date-to-in').focus();
       return;
     }

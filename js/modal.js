@@ -25,6 +25,8 @@ export function resetModal() {
   $('date-to-in').removeAttribute('min');
   _resetDateList();
   state.storedCity = ''; state.storedCountry = '';
+  $('date-to-in').classList.remove('error');
+  $('date-to-err').textContent = '';
   setModalStatus('interested');
   setModalType('show');
   closeAC('artist-ac'); closeAC('venue-ac'); closeAC('fest-ac');
@@ -45,7 +47,10 @@ function _appendDateRow(list) {
   inp.className = 'fi multi-date-in';
   inp.type = 'date';
   inp.addEventListener('change', e => {
-    if (e.target.value && e.target.value < today()) setModalStatus('attended');
+    const val = e.target.value;
+    if (!val) return;
+    if (parseInt(val.split('-')[0], 10) < 1900) return;
+    setModalStatus(val < today() ? 'attended' : 'interested');
   });
 
   const btn = document.createElement('button');
@@ -129,7 +134,8 @@ export function submitModal() {
     if (!festival) { toast('Festival name is required.'); $('fest-in').focus(); return; }
     if (!dateFrom) { toast('Start date is required.'); $('date-from-in').focus(); return; }
     if (dateTo && dateTo < dateFrom) {
-      toast("End date can't be before start date.");
+      $('date-to-in').classList.add('error');
+      $('date-to-err').textContent = "End date can't be before start date";
       $('date-to-in').focus();
       return;
     }

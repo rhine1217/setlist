@@ -59,7 +59,18 @@ $('date-from-in').addEventListener('change', e => {
   if (!to.value || to.value === prevDateFrom) to.value = e.target.value;
   prevDateFrom  = e.target.value;
   to.min        = e.target.value;
-  if (e.target.value && e.target.value < today()) setModalStatus('attended');
+  const val = e.target.value;
+  if (val && parseInt(val.split('-')[0], 10) >= 1900)
+    setModalStatus(val < today() ? 'attended' : 'interested');
+});
+
+$('date-to-in').addEventListener('change', () => {
+  $('date-to-in').classList.remove('error');
+  $('date-to-err').textContent = '';
+});
+$('edit-date-to-in').addEventListener('change', () => {
+  $('edit-date-to-in').classList.remove('error');
+  $('edit-date-to-err').textContent = '';
 });
 
 // Add modal Enter-key navigation
@@ -161,10 +172,13 @@ $('edit-fest-in').addEventListener('input', e =>
 );
 $('edit-fest-in').addEventListener('blur', () => setTimeout(() => closeAC('edit-fest-ac'), 160));
 
-// Edit show date: auto-attended
+// Edit show date: auto-status
 $('edit-date-in').addEventListener('change', e => {
-  if (e.target.value && e.target.value < today() && $('edit-status-fg').style.display !== 'none')
-    setEditStatus('attended');
+  const val = e.target.value;
+  if (val && $('edit-status-fg').style.display !== 'none') {
+    if (parseInt(val.split('-')[0], 10) >= 1900)
+      setEditStatus(val < today() ? 'attended' : 'interested');
+  }
 });
 
 // Festival date-from: auto-fill date-to, set min, auto-attended (edit modal)
@@ -174,8 +188,11 @@ $('edit-date-from-in').addEventListener('change', e => {
   if (!to.value || to.value === prevEditDateFrom) to.value = e.target.value;
   prevEditDateFrom = e.target.value;
   to.min           = e.target.value;
-  if (e.target.value && e.target.value < today() && $('edit-status-fg').style.display !== 'none')
-    setEditStatus('attended');
+  const val = e.target.value;
+  if (val && $('edit-status-fg').style.display !== 'none') {
+    if (parseInt(val.split('-')[0], 10) >= 1900)
+      setEditStatus(val < today() ? 'attended' : 'interested');
+  }
 });
 
 // ── Lineup ────────────────────────────────────────────────────────────────────
